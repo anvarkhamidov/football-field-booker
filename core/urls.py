@@ -16,16 +16,35 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 
-from book.views import BookingViewSet
 from field.views import FieldViewSet
 
-router = DefaultRouter()
-router.register(r'fields', FieldViewSet)
-router.register(r'bookings', BookingViewSet)
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Football Field Booking API",
+        default_version="v1",
+        description="API documentation",
+    ),
+    public=True,
+    permission_classes=[
+        permissions.AllowAny,
+    ],
+)
+router = DefaultRouter(trailing_slash=False)
+router.register(r"fields", FieldViewSet, basename="field")
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path("admin/", admin.site.urls),
+    path(
+        "docs",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    path("", include(router.urls)),
+    path("", include("booking.urls")),
+    path("user", include("user.urls")),
+    path("admin", admin.site.urls),
 ]

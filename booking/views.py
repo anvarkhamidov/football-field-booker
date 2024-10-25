@@ -4,15 +4,23 @@ from rest_framework import generics, serializers
 from rest_framework import permissions
 
 from booking.models import Booking
-from booking.serializers import BookingSerializer
+from booking.serializers import (
+    BookingListSerializer,
+    BookingCreateSerializer,
+    BookingDeleteSerializer,
+)
 from core.permissions import IsFieldOwner
 from field.models import Field
 
 
 class BookingListCreateView(generics.ListCreateAPIView):
     queryset = Booking.objects.all()
-    serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return BookingListSerializer
+        return BookingCreateSerializer
 
     def perform_create(self, serializer):
         dt1 = datetime.combine(
@@ -42,23 +50,30 @@ class BookingListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         # Apply IsFieldOwner permission for the 'GET' method
         if self.request.method == "GET":
+            if self.request.user.is_superuser:
+                return [permissions.IsAdminUser()]
             return [permissions.IsAuthenticated(), IsFieldOwner()]
-        # Allow everyone to create bookings with the 'POST' method
-        return super().get_permissions()
+        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         # Show only the bookings of the logged-in user
         if (
             self.request.user.is_authenticated
         ):  # Swagger tries to inspect and because of permission, getting AnonymusUser
+            if self.request.user.is_superuser:
+                return Booking.objects.all().prefetch_related("field", "user")
             return Booking.objects.filter(
                 field__owner=self.request.user
             ).prefetch_related("field", "user")
 
 
 class BookingDeleteView(generics.DestroyAPIView):
-    serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated, IsFieldOwner]
+    serializer_class = BookingDeleteSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        permissions.IsAdminUser,
+        IsFieldOwner,
+    ]
 
     def get_queryset(self):
         if (

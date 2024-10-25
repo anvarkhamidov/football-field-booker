@@ -21,7 +21,11 @@ class FieldViewSet(viewsets.ModelViewSet):
         if self.action in ["list", "retrieve"]:
             return [permissions.IsAuthenticated()]
         # Allow only field owners to update, delete and create fields
-        return [permissions.IsAuthenticated(), IsFieldOwner()]
+        return [
+            permissions.IsAuthenticated(),
+            permissions.IsAdminUser(),
+            IsFieldOwner(),
+        ]
 
     def list(self, request, *args, **kwargs):
         user_lat = request.query_params.get("latitude")

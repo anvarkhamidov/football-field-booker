@@ -5,24 +5,16 @@ from field.serializers import FieldSerializer
 from user.serializers import UserSerializer
 
 
-class BookingSerializer(serializers.HyperlinkedModelSerializer):
-    user = UserSerializer(read_only=True)
-    field = FieldSerializer(read_only=True)
-    total_cost = serializers.FloatField(read_only=True)
+class BookingCreateSerializer(serializers.HyperlinkedModelSerializer):
     field_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Booking
         fields = [
-            "id",
-            "field",
             "field_id",
-            "user",
             "date",
             "time_from",
             "time_to",
-            "created_at",
-            "total_cost",
         ]
 
     def validate(self, data):
@@ -36,3 +28,28 @@ class BookingSerializer(serializers.HyperlinkedModelSerializer):
                 "Field is already booked for this time."
             )
         return data
+
+
+class BookingListSerializer(serializers.HyperlinkedModelSerializer):
+    user = UserSerializer(read_only=True)
+    field = FieldSerializer(read_only=True)
+    total_cost = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = Booking
+        fields = [
+            "id",
+            "field",
+            "user",
+            "date",
+            "time_from",
+            "time_to",
+            "created_at",
+            "total_cost",
+        ]
+
+
+class BookingDeleteSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Booking
+        fields = ["id"]

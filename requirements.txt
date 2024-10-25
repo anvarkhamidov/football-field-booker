@@ -4,3 +4,6 @@ django-filter
 Pillow
 django-rest-swagger
 drf-yasg
+django-environ
+gunicorn
+psycopg2-binary
